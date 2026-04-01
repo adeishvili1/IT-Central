@@ -3,13 +3,9 @@
 
     <!-- Logo -->
     <div class="flex items-center gap-3 mb-10">
-      <div class="w-10 h-10 rounded-xl bg-primary-700 flex items-center justify-center shadow-sm">
-        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18" />
-        </svg>
-      </div>
+      <img src="/logo.png" alt="Logo" class="w-12 h-12 object-contain flex-shrink-0" />
       <div>
-        <p class="text-base font-bold text-gray-900">IT Central</p>
+        <p class="text-base font-bold text-gray-900">IT Approval system</p>
         <p class="text-xs text-gray-400">მოთხოვნების მართვა</p>
       </div>
     </div>
@@ -20,8 +16,18 @@
       <p class="text-sm text-gray-500">შეიყვანეთ თქვენი მონაცემები სისტემაში შესასვლელად</p>
     </div>
 
+    <!-- Error -->
+    <Transition name="slide-down">
+      <div v-if="loginError" class="mb-4 flex items-center gap-2.5 rounded-lg bg-red-50 border border-red-100 px-4 py-3">
+        <svg class="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p class="text-sm text-red-600">{{ loginError }}</p>
+      </div>
+    </Transition>
+
     <!-- Form -->
-    <form @submit.prevent="$router.push('/')" class="space-y-5">
+    <form @submit.prevent="handleLogin" class="space-y-5">
       <div>
         <label class="form-label">ელ-ფოსტა</label>
         <div class="relative">
@@ -31,7 +37,7 @@
             </svg>
           </span>
           <input
-            name="email"
+            v-model="email"
             type="email"
             placeholder="example@company.ge"
             class="form-input pl-10"
@@ -50,18 +56,15 @@
             </svg>
           </span>
           <input
-            name="password"
+            v-model="password"
             :type="showPassword ? 'text' : 'password'"
             placeholder="შეიყვანეთ პაროლი"
             class="form-input pl-10 pr-10"
             autocomplete="current-password"
             required
           />
-          <button
-            type="button"
-            @click="showPassword = !showPassword"
-            class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600"
-          >
+          <button type="button" @click="showPassword = !showPassword"
+            class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600">
             <svg v-if="!showPassword" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -73,12 +76,32 @@
         </div>
       </div>
 
-      <button type="submit" class="btn-primary w-full py-3 text-base">
-        ავტორიზაცია
+      <button type="submit" :disabled="loading" class="btn-primary w-full py-3 text-base">
+        <svg v-if="loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+        </svg>
+        {{ loading ? 'შედის...' : 'ავტორიზაცია' }}
       </button>
     </form>
 
-    <p class="mt-8 text-center text-xs text-gray-400">
+    <!-- Demo credentials hint -->
+    <div class="mt-8 rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-2">
+      <p class="text-xs font-semibold text-gray-500 mb-2">სატესტო ანგარიშები:</p>
+      <div v-for="u in demoUsers" :key="u.email"
+        class="flex items-center justify-between gap-2 cursor-pointer hover:bg-white rounded-lg px-2 py-1.5 transition-colors group"
+        @click="fillCredentials(u.email, u.password)">
+        <div>
+          <p class="text-xs font-medium text-gray-700">{{ u.email }}</p>
+          <p class="text-[11px] text-gray-400">{{ u.password }} · <span :class="u.badgeColor">{{ u.roleLabel }}</span></p>
+        </div>
+        <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-primary-500 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+      </div>
+    </div>
+
+    <p class="mt-6 text-center text-xs text-gray-400">
       © {{ new Date().getFullYear() }} IT Central. ყველა უფლება დაცულია.
     </p>
   </div>
@@ -87,5 +110,35 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'auth' })
 
+const { login, loginError } = useAuth()
+const router = useRouter()
+
+const email = ref('')
+const password = ref('')
 const showPassword = ref(false)
+const loading = ref(false)
+
+const demoUsers = [
+  { email: 'superadmin@company.ge', password: 'super123', roleLabel: 'სუპერ ადმინი', badgeColor: 'text-red-500 font-medium' },
+  { email: 'admin@company.ge',      password: 'admin123', roleLabel: 'ადმინი',        badgeColor: 'text-purple-500 font-medium' },
+  { email: 'support@company.ge',    password: 'support123', roleLabel: 'მხარდაჭერა',  badgeColor: 'text-blue-500 font-medium' }
+]
+
+const fillCredentials = (e: string, p: string) => {
+  email.value = e
+  password.value = p
+}
+
+const handleLogin = async () => {
+  loading.value = true
+  await new Promise(r => setTimeout(r, 400))
+  const ok = login(email.value, password.value)
+  loading.value = false
+  if (ok) router.push('/')
+}
 </script>
+
+<style scoped>
+.slide-down-enter-active { transition: all 0.2s ease; }
+.slide-down-enter-from { opacity: 0; transform: translateY(-6px); }
+</style>

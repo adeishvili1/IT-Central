@@ -9,11 +9,7 @@
     >
       <!-- Logo -->
       <div class="flex items-center gap-3 px-4 h-16 border-b border-gray-100 flex-shrink-0">
-        <div class="w-9 h-9 flex-shrink-0 rounded-xl bg-primary-700 flex items-center justify-center">
-          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18" />
-          </svg>
-        </div>
+        <img src="/logo.png" alt="Logo" class="w-9 h-9 flex-shrink-0 object-contain" />
         <Transition name="fade">
           <div v-if="sidebarOpen" class="overflow-hidden">
             <p class="text-sm font-bold text-gray-900 whitespace-nowrap leading-tight">IT Central</p>
@@ -24,7 +20,7 @@
 
       <!-- Nav -->
       <nav class="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
-        <template v-for="item in navItems" :key="item.to">
+        <template v-for="item in visibleNavItems" :key="item.to">
           <!-- Section label -->
           <p
             v-if="item.section && sidebarOpen"
@@ -131,7 +127,10 @@
               >
                 <div class="px-4 py-2.5 border-b border-gray-100">
                   <p class="text-sm font-medium text-gray-900">{{ fullName }}</p>
-                  <p class="text-xs text-gray-500">{{ currentUser.email }}</p>
+                  <p class="text-xs text-gray-500 mb-1.5">{{ currentUser.email }}</p>
+                  <span class="badge text-[11px]" :class="roleBadgeColor[currentUser.role]">
+                    {{ roleLabel[currentUser.role] }}
+                  </span>
                 </div>
                 <NuxtLink to="/profile" @click="dropdownOpen=false" class="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                   <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -139,14 +138,15 @@
                   </svg>
                   პროფილი
                 </NuxtLink>
-                <NuxtLink to="/settings" @click="dropdownOpen=false" class="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                <NuxtLink v-if="permissions.seeSettings" to="/settings" @click="dropdownOpen=false" class="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                   <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   პარამეტრები
                 </NuxtLink>
-                <div class="border-t border-gray-100 mt-1">
+
+<div class="border-t border-gray-100 mt-1">
                   <button @click="handleLogout" class="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -173,7 +173,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 
 defineOptions({ name: 'DefaultLayout' })
 
-const { currentUser, initials, fullName, logout, checkAuth } = useAuth()
+const { currentUser, initials, fullName, logout, checkAuth, permissions, roleLabel, roleBadgeColor } = useAuth()
 const route = useRoute()
 
 const sidebarOpen = ref(true)
@@ -181,7 +181,7 @@ const dropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
 
 const pageTitle = computed(() => {
-  const item = navItems.find(n => n.to === route.path)
+  const item = allNavItems.find(n => n.to === route.path)
   return item?.label ?? ''
 })
 
@@ -207,51 +207,70 @@ onMounted(() => {
 })
 onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 
-const navItems = [
+const allNavItems = [
   {
     to: '/',
     label: 'დეშბორდი',
-    icon: resolveComponent('IconDashboard')
+    icon: resolveComponent('IconDashboard'),
+    show: () => true
   },
   {
     section: 'მოთხოვნები',
     to: '/requests',
     label: 'მოთხოვნები',
-    icon: resolveComponent('IconRequests')
+    icon: resolveComponent('IconRequests'),
+    show: () => true
   },
   {
     to: '/approvals',
     label: 'დასამტკიცებელი',
-    icon: resolveComponent('IconApprovals')
+    icon: resolveComponent('IconApprovals'),
+    show: () => permissions.value.seeApprovals
   },
   {
     section: 'ადმინისტრირება',
     to: '/users',
     label: 'მომხმარებლები',
-    icon: resolveComponent('IconUsers')
+    icon: resolveComponent('IconUsers'),
+    show: () => permissions.value.seeUsers
   },
   {
     to: '/reports',
     label: 'ანგარიშები',
-    icon: resolveComponent('IconReports')
+    icon: resolveComponent('IconReports'),
+    show: () => permissions.value.seeReports
   },
   {
     to: '/analytics',
     label: 'ანალიტიკა',
-    icon: resolveComponent('IconAnalytics')
+    icon: resolveComponent('IconAnalytics'),
+    show: () => permissions.value.seeAnalytics
   },
   {
     section: 'სისტემა',
     to: '/settings',
     label: 'პარამეტრები',
-    icon: resolveComponent('IconSettings')
+    icon: resolveComponent('IconSettings'),
+    show: () => permissions.value.seeSettings
   },
   {
     to: '/audit-log',
     label: 'აუდიტ ლოგი',
-    icon: resolveComponent('IconAudit')
+    icon: resolveComponent('IconAudit'),
+    show: () => permissions.value.seeAuditLog
   }
 ]
+
+// Filter nav items and remove orphaned section headers
+const visibleNavItems = computed(() => {
+  const filtered = allNavItems.filter(item => item.show())
+  return filtered.filter((item, i) => {
+    if (!item.section) return true
+    // Remove section header if no visible items follow before next section
+    const next = filtered[i + 1]
+    return next && !next.section
+  })
+})
 </script>
 
 <style scoped>

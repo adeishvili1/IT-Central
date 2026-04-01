@@ -1,7 +1,7 @@
 <template>
   <div class="p-6 space-y-5">
 
-    <!-- Toolbar -->
+    <!-- Toolbar row 1 -->
     <div class="flex flex-col sm:flex-row sm:items-center gap-3">
       <div class="flex-1 relative">
         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -12,26 +12,52 @@
         <input v-model="search" type="text" placeholder="ძიება სათაურით, ნომრით, მომთხოვნით..."
           class="form-input pl-10 w-full" />
       </div>
-      <div class="flex items-center gap-2 flex-shrink-0">
-        <select v-model="filterStatus" class="form-select text-sm w-40">
-          <option value="">ყველა სტატუსი</option>
-          <option v-for="(label, key) in statusLabel" :key="key" :value="key">{{ label }}</option>
-        </select>
-        <select v-model="filterCategory" class="form-select text-sm w-40">
-          <option value="">ყველა კატეგ.</option>
-          <option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option>
-        </select>
-        <select v-model="filterPriority" class="form-select text-sm w-36">
-          <option value="">ყველა პრიორ.</option>
-          <option v-for="(label, key) in priorityLabel" :key="key" :value="key">{{ label }}</option>
-        </select>
-        <NuxtLink to="/requests/create" class="btn-primary flex-shrink-0">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          ახალი
-        </NuxtLink>
+      <NuxtLink to="/requests/create" class="btn-primary flex-shrink-0">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        ახალი მოთხოვნა
+      </NuxtLink>
+    </div>
+
+    <!-- Toolbar row 2: filters -->
+    <div class="flex flex-wrap gap-2 items-center">
+      <select v-model="filterStatus" class="form-select text-sm w-40">
+        <option value="">ყველა სტატუსი</option>
+        <option v-for="(label, key) in statusLabel" :key="key" :value="key">{{ label }}</option>
+      </select>
+      <select v-model="filterCategory" class="form-select text-sm w-36">
+        <option value="">ყველა კატეგ.</option>
+        <option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option>
+      </select>
+      <select v-model="filterPriority" class="form-select text-sm w-36">
+        <option value="">ყველა პრიორ.</option>
+        <option v-for="(label, key) in priorityLabel" :key="key" :value="key">{{ label }}</option>
+      </select>
+      <select v-model="filterRegion" class="form-select text-sm w-36">
+        <option value="">ყველა რეგიონი</option>
+        <option v-for="r in uniqueRegions" :key="r">{{ r }}</option>
+      </select>
+      <select v-model="filterAssignee" class="form-select text-sm w-40">
+        <option value="">ყველა პასუხისმ.</option>
+        <option v-for="a in uniqueAssignees" :key="a">{{ a }}</option>
+      </select>
+      <select v-model="filterAuthor" class="form-select text-sm w-40">
+        <option value="">ყველა ავტორი</option>
+        <option v-for="a in uniqueAuthors" :key="a">{{ a }}</option>
+      </select>
+      <div class="flex items-center gap-1.5">
+        <input v-model="dateFrom" type="date" class="form-input text-sm w-36" title="თარიღიდან" />
+        <span class="text-gray-400 text-xs">—</span>
+        <input v-model="dateTo" type="date" class="form-input text-sm w-36" title="თარიღამდე" />
       </div>
+      <button v-if="hasActiveFilters" @click="clearFilters"
+        class="text-xs text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1 px-2 py-2">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        ფილტრის გასუფთავება
+      </button>
     </div>
 
     <!-- Count -->
@@ -108,11 +134,24 @@
 definePageMeta({ layout: 'default', middleware: 'auth' })
 
 const { requests, statusLabel, statusColor, priorityLabel, priorityColor, categoryLabel } = useRequests()
+const { currentUser, permissions } = useAuth()
+
+// support role sees only their own requests
+const baseRequests = computed(() =>
+  permissions.value.seeAllRequests
+    ? requests.value
+    : requests.value.filter(r => r.requester === `${currentUser.value.name} ${currentUser.value.surname}`)
+)
 
 const search = ref('')
 const filterStatus = ref('')
 const filterCategory = ref('')
 const filterPriority = ref('')
+const filterRegion = ref('')
+const filterAssignee = ref('')
+const filterAuthor = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
 
 const categoryEmoji: Record<string, string> = {
   hardware: '🖥️', software: '💿', access: '🔐', support: '🔧', other: '📋'
@@ -121,13 +160,39 @@ const categoryEmoji: Record<string, string> = {
 const formatDate = (d: string) =>
   new Date(d).toLocaleDateString('ka-GE', { day: '2-digit', month: 'short', year: 'numeric' })
 
+const uniqueRegions = computed(() => [...new Set(requests.value.map(r => r.region))].sort())
+const uniqueAssignees = computed(() => [...new Set(requests.value.map(r => r.assignee).filter(Boolean))] as string[])
+const uniqueAuthors = computed(() => [...new Set(requests.value.map(r => r.requester))].sort())
+
+const hasActiveFilters = computed(() =>
+  !!(search.value || filterStatus.value || filterCategory.value || filterPriority.value ||
+     filterRegion.value || filterAssignee.value || filterAuthor.value || dateFrom.value || dateTo.value)
+)
+
+const clearFilters = () => {
+  search.value = ''
+  filterStatus.value = ''
+  filterCategory.value = ''
+  filterPriority.value = ''
+  filterRegion.value = ''
+  filterAssignee.value = ''
+  filterAuthor.value = ''
+  dateFrom.value = ''
+  dateTo.value = ''
+}
+
 const filtered = computed(() => {
-  return requests.value.filter(r => {
+  return baseRequests.value.filter(r => {
     const q = search.value.toLowerCase()
     if (q && !r.title.toLowerCase().includes(q) && !r.number.toLowerCase().includes(q) && !r.requester.toLowerCase().includes(q)) return false
     if (filterStatus.value && r.status !== filterStatus.value) return false
     if (filterCategory.value && r.category !== filterCategory.value) return false
     if (filterPriority.value && r.priority !== filterPriority.value) return false
+    if (filterRegion.value && r.region !== filterRegion.value) return false
+    if (filterAssignee.value && r.assignee !== filterAssignee.value) return false
+    if (filterAuthor.value && r.requester !== filterAuthor.value) return false
+    if (dateFrom.value && r.createdAt < dateFrom.value) return false
+    if (dateTo.value && r.createdAt > dateTo.value + 'T23:59:59') return false
     return true
   })
 })

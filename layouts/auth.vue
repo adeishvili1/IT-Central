@@ -20,6 +20,12 @@
         style="background: rgba(255,255,255,0.06);" />
 
       <div class="relative z-10 max-w-lg">
+        <!-- Logo -->
+        <div class="flex items-center gap-3 mb-10">
+          <img src="/logo.png" alt="Logo" class="w-14 h-14 object-contain flex-shrink-0" style="filter: brightness(0) invert(1);" />
+          <p class="text-xl font-bold text-white">IT Central</p>
+        </div>
+
         <!-- Heading -->
         <h1 class="text-5xl font-bold text-white leading-tight mb-6" style="line-height:1.15">
           ცენტრალური IT<br />მოთხოვნების<br />მართვის სისტემა

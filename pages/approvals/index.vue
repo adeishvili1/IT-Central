@@ -81,15 +81,15 @@ const catBg: Record<string, string> = {
 }
 
 const tabs = computed(() => [
-  { key: 'pending', label: 'განსახილველი', count: requests.value.filter(r => r.status === 'new' || r.status === 'in_review').length },
-  { key: 'approved', label: 'დამტკიცებული', count: requests.value.filter(r => r.status === 'approved').length },
-  { key: 'rejected', label: 'უარყოფილი', count: requests.value.filter(r => r.status === 'rejected').length }
+  { key: 'pending', label: 'განსახილველი', count: requests.value.filter(r => ['new','in_review','needs_clarification'].includes(r.status)).length },
+  { key: 'approved', label: 'დამტკიცებული', count: requests.value.filter(r => r.status === 'approved' || r.status === 'delegated').length },
+  { key: 'rejected', label: 'უარყოფილი / გაუქმ.', count: requests.value.filter(r => r.status === 'rejected' || r.status === 'cancelled').length }
 ])
 
 const filtered = computed(() => {
-  if (activeTab.value === 'pending') return requests.value.filter(r => r.status === 'new' || r.status === 'in_review')
-  if (activeTab.value === 'approved') return requests.value.filter(r => r.status === 'approved')
-  if (activeTab.value === 'rejected') return requests.value.filter(r => r.status === 'rejected')
+  if (activeTab.value === 'pending') return requests.value.filter(r => ['new','in_review','needs_clarification'].includes(r.status))
+  if (activeTab.value === 'approved') return requests.value.filter(r => r.status === 'approved' || r.status === 'delegated')
+  if (activeTab.value === 'rejected') return requests.value.filter(r => r.status === 'rejected' || r.status === 'cancelled')
   return requests.value
 })
 

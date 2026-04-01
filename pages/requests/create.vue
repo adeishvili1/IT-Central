@@ -256,6 +256,92 @@
         </div>
       </div>
 
+      <!-- File attachments -->
+      <div class="card p-6 space-y-4">
+        <h2 class="text-sm font-semibold text-gray-700 border-b border-gray-100 pb-3">დანართები</h2>
+
+        <!-- Drop zone -->
+        <div
+          class="relative border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer"
+          :class="isDragging
+            ? 'border-primary-500 bg-primary-50'
+            : 'border-gray-200 hover:border-primary-400 hover:bg-gray-50'"
+          @dragover.prevent="isDragging = true"
+          @dragleave.prevent="isDragging = false"
+          @drop.prevent="onDrop"
+          @click="fileInputRef?.click()"
+        >
+          <input
+            ref="fileInputRef"
+            type="file"
+            multiple
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+            class="hidden"
+            @change="onFileSelect"
+          />
+          <div class="flex flex-col items-center gap-3 pointer-events-none">
+            <div class="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center">
+              <svg class="w-6 h-6 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-700">
+                ჩააგდეთ ფაილები აქ ან <span class="text-primary-600">დაათვალიერეთ</span>
+              </p>
+              <p class="text-xs text-gray-400 mt-1">PNG, JPG, PDF, DOC, XLS — მაქს. 10MB თითო ფაილზე</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- File list -->
+        <div v-if="attachments.length > 0" class="space-y-2">
+          <div
+            v-for="(file, i) in attachments"
+            :key="i"
+            class="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100 group"
+          >
+            <!-- Icon by type -->
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 text-base"
+              :class="fileIconBg(file.type)">
+              {{ fileIconEmoji(file.type) }}
+            </div>
+
+            <!-- Info -->
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-800 truncate">{{ file.name }}</p>
+              <p class="text-xs text-gray-400">{{ formatSize(file.size) }}</p>
+            </div>
+
+            <!-- Preview thumbnail for images -->
+            <img
+              v-if="file.preview"
+              :src="file.preview"
+              class="w-10 h-10 rounded-lg object-cover border border-gray-200 flex-shrink-0"
+            />
+
+            <!-- Remove -->
+            <button
+              type="button"
+              @click="removeFile(i)"
+              class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Error -->
+        <p v-if="fileError" class="text-xs text-red-500 flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {{ fileError }}
+        </p>
+      </div>
+
       <!-- Submit -->
       <div class="flex items-center justify-end gap-3">
         <button type="button" @click="$router.back()" class="btn-secondary">გაუქმება</button>
@@ -311,10 +397,85 @@ const extra = reactive({
 
 const submitting = ref(false)
 
+// ── File attachment logic ──────────────────────────────────────────────
+interface AttachedFile {
+  name: string
+  size: number
+  type: string
+  preview?: string
+}
+
+const attachments = ref<AttachedFile[]>([])
+const isDragging = ref(false)
+const fileError = ref('')
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+
+const processFiles = (files: FileList | File[]) => {
+  fileError.value = ''
+  Array.from(files).forEach(file => {
+    if (file.size > MAX_SIZE) {
+      fileError.value = `"${file.name}" ძალიან დიდია (მაქს. 10MB).`
+      return
+    }
+    if (attachments.value.find(a => a.name === file.name && a.size === file.size)) return
+
+    const entry: AttachedFile = { name: file.name, size: file.size, type: file.type }
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader()
+      reader.onload = e => { entry.preview = e.target?.result as string }
+      reader.readAsDataURL(file)
+    }
+
+    attachments.value.push(entry)
+  })
+}
+
+const onDrop = (e: DragEvent) => {
+  isDragging.value = false
+  if (e.dataTransfer?.files) processFiles(e.dataTransfer.files)
+}
+
+const onFileSelect = (e: Event) => {
+  const input = e.target as HTMLInputElement
+  if (input.files) processFiles(input.files)
+  input.value = ''
+}
+
+const removeFile = (i: number) => attachments.value.splice(i, 1)
+
+const formatSize = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+const fileIconEmoji = (type: string) => {
+  if (type.startsWith('image/')) return '🖼️'
+  if (type === 'application/pdf') return '📄'
+  if (type.includes('word')) return '📝'
+  if (type.includes('sheet') || type.includes('excel')) return '📊'
+  return '📎'
+}
+
+const fileIconBg = (type: string) => {
+  if (type.startsWith('image/')) return 'bg-purple-50'
+  if (type === 'application/pdf') return 'bg-red-50'
+  if (type.includes('word')) return 'bg-blue-50'
+  if (type.includes('sheet') || type.includes('excel')) return 'bg-green-50'
+  return 'bg-gray-100'
+}
+
+// ── Submit ──────────────────────────────────────────────────────────────
 const handleSubmit = async () => {
   submitting.value = true
   await new Promise(r => setTimeout(r, 600))
-  const req = createRequest({ ...form, requester: 'გიორგი ბერიძე' })
+  const req = createRequest({
+    ...form,
+    requester: 'გიორგი ბერიძე',
+    attachments: attachments.value.map(f => f.name)
+  })
   submitting.value = false
   router.push(`/requests/${req.id}`)
 }

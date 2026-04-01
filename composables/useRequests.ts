@@ -1,4 +1,4 @@
-export type RequestStatus = 'new' | 'in_review' | 'approved' | 'rejected' | 'in_progress' | 'resolved' | 'closed'
+export type RequestStatus = 'new' | 'in_review' | 'needs_clarification' | 'approved' | 'rejected' | 'delegated' | 'in_progress' | 'resolved' | 'closed' | 'cancelled'
 export type RequestPriority = 'low' | 'medium' | 'high' | 'critical'
 export type RequestCategory = 'hardware' | 'software' | 'access' | 'support' | 'other'
 
@@ -189,21 +189,27 @@ export const useRequests = () => {
   const statusLabel: Record<RequestStatus, string> = {
     new: 'ახალი',
     in_review: 'განხილვაში',
+    needs_clarification: 'დაზუსტება საჭირო',
     approved: 'დამტკიცებული',
     rejected: 'უარყოფილი',
+    delegated: 'დელეგირებული',
     in_progress: 'მიმდინარე',
     resolved: 'შესრულებული',
-    closed: 'დახურული'
+    closed: 'დახურული',
+    cancelled: 'გაუქმებული'
   }
 
   const statusColor: Record<RequestStatus, string> = {
     new: 'bg-blue-100 text-blue-700',
     in_review: 'bg-yellow-100 text-yellow-700',
+    needs_clarification: 'bg-orange-100 text-orange-700',
     approved: 'bg-green-100 text-green-700',
     rejected: 'bg-red-100 text-red-700',
+    delegated: 'bg-indigo-100 text-indigo-700',
     in_progress: 'bg-purple-100 text-purple-700',
     resolved: 'bg-teal-100 text-teal-700',
-    closed: 'bg-gray-100 text-gray-600'
+    closed: 'bg-gray-100 text-gray-600',
+    cancelled: 'bg-gray-100 text-gray-400'
   }
 
   const priorityLabel: Record<RequestPriority, string> = {
@@ -296,7 +302,9 @@ export const useRequests = () => {
     approved: requests.value.filter(r => r.status === 'approved').length,
     rejected: requests.value.filter(r => r.status === 'rejected').length,
     resolved: requests.value.filter(r => r.status === 'resolved').length,
-    critical: requests.value.filter(r => r.priority === 'critical' && !['resolved','closed'].includes(r.status)).length
+    critical: requests.value.filter(r => r.priority === 'critical' && !['resolved','closed','cancelled'].includes(r.status)).length,
+    needs_clarification: requests.value.filter(r => r.status === 'needs_clarification').length,
+    delegated: requests.value.filter(r => r.status === 'delegated').length
   }))
 
   return {

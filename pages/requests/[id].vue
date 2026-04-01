@@ -20,14 +20,27 @@
       </div>
 
       <!-- Actions -->
-      <div class="flex items-center gap-2 flex-shrink-0">
-        <template v-if="req.status === 'new' || req.status === 'in_review'">
-          <button @click="openAction('approve')"
-            class="btn-primary">
+      <div class="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+
+        <!-- new / in_review / needs_clarification — admin/super_admin only -->
+        <template v-if="permissions.approveReject && ['new','in_review','needs_clarification'].includes(req.status)">
+          <button @click="openAction('approve')" class="btn-primary">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
             დამტკიცება
+          </button>
+          <button @click="openAction('clarify')" class="btn-secondary">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            დაზუსტება
+          </button>
+          <button @click="openAction('delegate')" class="btn-secondary">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            დელეგირება
           </button>
           <button @click="openAction('reject')" class="btn-danger">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -36,19 +49,32 @@
             უარყოფა
           </button>
         </template>
-        <template v-if="req.status === 'approved'">
-          <button @click="changeStatus('in_progress')" class="btn-secondary">
+
+        <!-- approved / delegated -->
+        <template v-if="req.status === 'approved' || req.status === 'delegated'">
+          <button @click="changeStatus('in_progress')" class="btn-primary">
             მუშაობა დაიწყო
           </button>
         </template>
+
+        <!-- in_progress -->
         <template v-if="req.status === 'in_progress'">
           <button @click="changeStatus('resolved')" class="btn-primary">
             შესრულებულია
           </button>
         </template>
+
+        <!-- resolved -->
         <template v-if="req.status === 'resolved'">
           <button @click="changeStatus('closed')" class="btn-secondary">
             დახურვა
+          </button>
+        </template>
+
+        <!-- cancel — support can cancel their own; super_admin can cancel any -->
+        <template v-if="!['resolved','closed','cancelled','rejected'].includes(req.status) && (permissions.cancelAny || permissions.createRequest)">
+          <button @click="openAction('cancel')" class="text-xs text-gray-400 hover:text-red-500 transition-colors px-2 py-1">
+            გაუქმება
           </button>
         </template>
       </div>
@@ -210,20 +236,29 @@
         <div v-if="actionModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="actionModal = null" />
           <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
-            <h3 class="text-base font-semibold text-gray-900">
-              {{ actionModal === 'approve' ? '✅ მოთხოვნის დამტკიცება' : '❌ მოთხოვნის უარყოფა' }}
-            </h3>
-            <p class="text-sm text-gray-500">კომენტარი (სავალდებულო)</p>
+
+            <h3 class="text-base font-semibold text-gray-900">{{ modalConfig.title }}</h3>
+            <p class="text-sm text-gray-500">{{ modalConfig.commentLabel }}</p>
+
+            <!-- Delegate: pick assignee first -->
+            <div v-if="actionModal === 'delegate'" class="space-y-3">
+              <select v-model="delegateTo" class="form-select">
+                <option value="">— პასუხისმგებელი პირი —</option>
+                <option v-for="u in itStaff" :key="u">{{ u }}</option>
+              </select>
+            </div>
+
             <textarea v-model="actionComment" rows="3" class="form-input resize-none"
-              :placeholder="actionModal === 'approve' ? 'დამტკიცების შენიშვნა...' : 'უარყოფის მიზეზი...'" />
+              :placeholder="modalConfig.placeholder" />
+
             <div class="flex gap-3 justify-end pt-2">
               <button @click="actionModal = null" class="btn-secondary">გაუქმება</button>
               <button
                 @click="confirmAction"
-                :disabled="!actionComment.trim()"
-                :class="actionModal === 'approve' ? 'btn-primary' : 'btn-danger'"
+                :disabled="!canConfirm"
+                :class="modalConfig.btnClass"
               >
-                {{ actionModal === 'approve' ? 'დამტკიცება' : 'უარყოფა' }}
+                {{ modalConfig.btnLabel }}
               </button>
             </div>
           </div>
@@ -243,14 +278,16 @@ definePageMeta({ layout: 'default', middleware: 'auth' })
 
 const route = useRoute()
 const { getRequest, updateStatus, addComment, statusLabel, statusColor, priorityLabel, priorityColor, categoryLabel } = useRequests()
+const { permissions } = useAuth()
 
 const id = computed(() => Number(route.params.id))
 const req = computed(() => getRequest(id.value))
 
 const newComment = ref('')
-const actionModal = ref<'approve' | 'reject' | null>(null)
+const actionModal = ref<'approve' | 'reject' | 'clarify' | 'delegate' | 'cancel' | null>(null)
 const actionComment = ref('')
 const assignee = ref(req.value?.assignee ?? '')
+const delegateTo = ref('')
 
 const itStaff = ['გიორგი ბერიძე', 'თამარ ჯოხაძე', 'ვახო კვარაცხელია', 'ნატა ქვარაია']
 
@@ -259,21 +296,51 @@ const formatDate = (d: string) =>
 const formatDateTime = (d: string) =>
   new Date(d).toLocaleString('ka-GE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
 
+const modalConfig = computed(() => {
+  switch (actionModal.value) {
+    case 'approve':   return { title: '✅ მოთხოვნის დამტკიცება',       commentLabel: 'კომენტარი',           placeholder: 'დამტკიცების შენიშვნა...',       btnClass: 'btn-primary', btnLabel: 'დამტკიცება' }
+    case 'reject':    return { title: '❌ მოთხოვნის უარყოფა',           commentLabel: 'უარყოფის მიზეზი (სავ.)', placeholder: 'მიუთითეთ მიზეზი...',           btnClass: 'btn-danger',  btnLabel: 'უარყოფა' }
+    case 'clarify':   return { title: '❓ დაზუსტების მოთხოვნა',         commentLabel: 'რა ინფორმაციაა საჭირო?', placeholder: 'მიუთითეთ რა გასარკვევია...',   btnClass: 'btn-secondary', btnLabel: 'გაგზავნა' }
+    case 'delegate':  return { title: '👤 მოთხოვნის დელეგირება',        commentLabel: 'კომენტარი',           placeholder: 'შენიშვნა პასუხისმგებელს...',    btnClass: 'btn-primary', btnLabel: 'დელეგირება' }
+    case 'cancel':    return { title: '🚫 მოთხოვნის გაუქმება',          commentLabel: 'გაუქმების მიზეზი (სავ.)', placeholder: 'მიუთითეთ მიზეზი...',          btnClass: 'btn-danger',  btnLabel: 'გაუქმება' }
+    default:          return { title: '', commentLabel: '', placeholder: '', btnClass: 'btn-primary', btnLabel: '' }
+  }
+})
+
+const canConfirm = computed(() => {
+  if (actionModal.value === 'delegate') return !!delegateTo.value
+  return !!actionComment.value.trim()
+})
+
 const submitComment = () => {
   if (!newComment.value.trim()) return
   addComment(id.value, newComment.value.trim())
   newComment.value = ''
 }
 
-const openAction = (type: 'approve' | 'reject') => {
+const openAction = (type: typeof actionModal.value) => {
   actionComment.value = ''
+  delegateTo.value = ''
   actionModal.value = type
 }
 
 const confirmAction = () => {
-  if (!actionComment.value.trim()) return
-  const status = actionModal.value === 'approve' ? 'approved' : 'rejected'
-  updateStatus(id.value, status, actionComment.value.trim())
+  if (!canConfirm.value) return
+  const r = getRequest(id.value)
+
+  if (actionModal.value === 'approve') {
+    updateStatus(id.value, 'approved', actionComment.value.trim() || undefined)
+  } else if (actionModal.value === 'reject') {
+    updateStatus(id.value, 'rejected', actionComment.value.trim())
+  } else if (actionModal.value === 'clarify') {
+    updateStatus(id.value, 'needs_clarification', `დაზუსტება საჭირო: ${actionComment.value.trim()}`)
+  } else if (actionModal.value === 'delegate') {
+    if (r) r.assignee = delegateTo.value
+    updateStatus(id.value, 'delegated', actionComment.value.trim() ? `დელეგირებული → ${delegateTo.value}. ${actionComment.value.trim()}` : `დელეგირებული → ${delegateTo.value}`)
+  } else if (actionModal.value === 'cancel') {
+    updateStatus(id.value, 'cancelled', `გაუქმებულია: ${actionComment.value.trim()}`)
+  }
+
   actionModal.value = null
 }
 

@@ -31,7 +31,7 @@
         <div v-if="filtered.length === 0" class="py-12 text-center text-sm text-gray-400">
           ჩანაწერები ვერ მოიძებნა
         </div>
-        <div v-for="entry in filtered" :key="entry.id" class="flex items-start gap-4 px-5 py-4 hover:bg-gray-50">
+        <div v-for="entry in filtered" :key="entry.id" class="flex items-start gap-4 px-5 py-4 hover:bg-blue-50/20 transition-colors duration-100">
           <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
             :style="{ background: avatarColor(entry.user) }">
             {{ entry.user[0] }}

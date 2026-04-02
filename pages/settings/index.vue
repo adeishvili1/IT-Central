@@ -13,7 +13,7 @@
 
     <!-- General -->
     <div v-if="activeTab === 'ზოგადი'" class="card p-6 space-y-5">
-      <h2 class="text-sm font-semibold text-gray-700 border-b border-gray-100 pb-3">სისტემის პარამეტრები</h2>
+      <h2 class="section-title">სისტემის პარამეტრები</h2>
       <div>
         <label class="form-label">სისტემის სახელი</label>
         <input v-model="settings.systemName" type="text" class="form-input" />
@@ -92,7 +92,7 @@
 
     <!-- SLA -->
     <div v-if="activeTab === 'SLA'" class="card p-6 space-y-4">
-      <h2 class="text-sm font-semibold text-gray-700 border-b border-gray-100 pb-3">SLA პარამეტრები</h2>
+      <h2 class="section-title">SLA პარამეტრები</h2>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>

@@ -47,45 +47,45 @@
 
     <!-- Summary cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div v-for="s in summary" :key="s.label" class="card p-5">
-        <p class="text-xs text-gray-500 mb-2">{{ s.label }}</p>
-        <p class="text-2xl font-bold" :class="s.color">{{ s.value }}</p>
-        <p class="text-xs text-gray-400 mt-1">{{ s.sub }}</p>
+      <div v-for="s in summary" :key="s.label" class="stat-card">
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ s.label }}</p>
+        <p class="text-2xl font-bold tracking-tight" :class="s.color">{{ s.value }}</p>
+        <p class="text-xs text-gray-400">{{ s.sub }}</p>
       </div>
     </div>
 
     <!-- Table -->
     <div class="card overflow-hidden">
-      <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
         <h3 class="text-sm font-semibold text-gray-800">მოთხოვნების სია</h3>
         <span class="text-xs text-gray-400">{{ filteredReqs.length }} ჩანაწერი</span>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-gray-100 bg-gray-50/60">
-              <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">ნომერი</th>
-              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">სათაური</th>
-              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">კატ.</th>
-              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">სტატ.</th>
-              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">რეგ.</th>
-              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">თარიღი</th>
-              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">ვადა</th>
+            <tr>
+              <th class="table-header-cell">ნომერი</th>
+              <th class="table-header-cell">სათაური</th>
+              <th class="table-header-cell">კატ.</th>
+              <th class="table-header-cell">სტატ.</th>
+              <th class="table-header-cell">რეგ.</th>
+              <th class="table-header-cell">თარიღი</th>
+              <th class="table-header-cell">ვადა</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr v-for="req in filteredReqs" :key="req.id" class="hover:bg-gray-50">
-              <td class="px-5 py-3 font-mono text-xs text-gray-400">{{ req.number }}</td>
-              <td class="px-4 py-3 font-medium text-gray-800 max-w-xs truncate">{{ req.title }}</td>
-              <td class="px-4 py-3">
+          <tbody>
+            <tr v-for="req in filteredReqs" :key="req.id" class="table-row">
+              <td class="table-cell font-mono text-xs text-gray-400">{{ req.number }}</td>
+              <td class="table-cell font-medium text-gray-800 max-w-xs truncate">{{ req.title }}</td>
+              <td class="table-cell">
                 <span class="text-xs text-gray-600">{{ catEmoji[req.category] }} {{ categoryLabel[req.category] }}</span>
               </td>
-              <td class="px-4 py-3">
+              <td class="table-cell">
                 <span class="badge text-[11px]" :class="statusColor[req.status]">{{ statusLabel[req.status] }}</span>
               </td>
-              <td class="px-4 py-3 text-xs text-gray-600">{{ req.region }}</td>
-              <td class="px-4 py-3 text-xs text-gray-400">{{ fmtDate(req.createdAt) }}</td>
-              <td class="px-4 py-3 text-xs" :class="isOverdue(req) ? 'text-red-500 font-medium' : 'text-gray-400'">
+              <td class="table-cell text-xs text-gray-600">{{ req.region }}</td>
+              <td class="table-cell text-xs text-gray-400">{{ fmtDate(req.createdAt) }}</td>
+              <td class="table-cell text-xs" :class="isOverdue(req) ? 'text-red-500 font-medium' : 'text-gray-400'">
                 {{ req.deadline ? fmtDate(req.deadline) : '—' }}
                 <span v-if="isOverdue(req)" class="ml-1">⚠️</span>
               </td>

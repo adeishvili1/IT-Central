@@ -8,7 +8,7 @@
       ]"
     >
       <!-- Logo -->
-      <div class="flex items-center gap-3 px-4 h-16 border-b border-gray-100 flex-shrink-0">
+      <NuxtLink to="/" class="flex items-center gap-3 px-4 h-16 border-b border-gray-100 flex-shrink-0 hover:bg-gray-50 transition-colors">
         <img src="/logo.png" alt="Logo" class="w-9 h-9 flex-shrink-0 object-contain" />
         <Transition name="fade">
           <div v-if="sidebarOpen" class="overflow-hidden">
@@ -16,7 +16,7 @@
             <p class="text-[10px] text-gray-400 whitespace-nowrap">მოთხოვნების სისტემა</p>
           </div>
         </Transition>
-      </div>
+      </NuxtLink>
 
       <!-- Nav -->
       <nav class="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
@@ -30,15 +30,13 @@
 
           <NuxtLink
             :to="item.to"
-            class="flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition-all group relative"
-            :class="isActive(item.to)
-              ? 'bg-primary-50 text-primary-700'
-              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
+            class="nav-link"
+            :class="isActive(item.to) ? 'nav-link-active' : 'nav-link-inactive'"
           >
             <!-- Active indicator -->
             <span
               v-if="isActive(item.to)"
-              class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-primary-600"
+              class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-primary-600"
             />
             <component :is="item.icon" class="w-5 h-5 flex-shrink-0" />
             <Transition name="fade">
@@ -48,7 +46,7 @@
             <!-- Tooltip when collapsed -->
             <div
               v-if="!sidebarOpen"
-              class="absolute left-full ml-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap z-50 pointer-events-none shadow-lg"
+              class="absolute left-full ml-2.5 hidden group-hover:flex items-center bg-gray-900 text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap z-50 pointer-events-none shadow-lg"
             >
               {{ item.label }}
             </div>
@@ -87,12 +85,59 @@
 
         <div class="flex items-center gap-3">
           <!-- Notifications -->
-          <button class="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
-          </button>
+          <div class="relative" ref="notificationsRef">
+            <button
+              @click="notificationsOpen = !notificationsOpen"
+              class="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all"
+            >
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
+            </button>
+
+            <!-- Notifications dropdown -->
+            <Transition
+              enter-active-class="transition ease-out duration-100"
+              enter-from-class="opacity-0 scale-95"
+              enter-to-class="opacity-100 scale-100"
+              leave-active-class="transition ease-in duration-75"
+              leave-from-class="opacity-100 scale-100"
+              leave-to-class="opacity-0 scale-95"
+            >
+              <div
+                v-if="notificationsOpen"
+                class="absolute right-0 top-full mt-1 w-80 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50"
+              >
+                <div class="px-4 py-3 border-b border-gray-100">
+                  <p class="text-sm font-semibold text-gray-900">შეტყობინებები</p>
+                </div>
+                <div class="max-h-96 overflow-y-auto">
+                  <div v-if="notifications.length === 0" class="px-4 py-8 text-center">
+                    <p class="text-sm text-gray-400">შეტყობინებები არ არის</p>
+                  </div>
+                  <div v-for="notif in notifications" :key="notif.id"
+                    class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer last:border-0"
+                    @click="notificationsOpen = false"
+                  >
+                    <div class="flex items-start gap-3">
+                      <div class="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" :class="notif.type === 'alert' ? 'bg-red-500' : notif.type === 'info' ? 'bg-blue-500' : 'bg-green-500'" />
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900">{{ notif.title }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ notif.message }}</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ notif.time }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="px-4 py-2 border-t border-gray-100 text-center">
+                  <button class="text-xs font-medium text-primary-600 hover:text-primary-700">
+                    ყველას ნახვა
+                  </button>
+                </div>
+              </div>
+            </Transition>
+          </div>
 
           <!-- User dropdown -->
           <div class="relative" ref="dropdownRef">
@@ -179,6 +224,15 @@ const route = useRoute()
 const sidebarOpen = ref(true)
 const dropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
+const notificationsOpen = ref(false)
+const notificationsRef = ref<HTMLElement | null>(null)
+
+const notifications = ref([
+  { id: 1, type: 'alert', title: 'მოთხოვნა დაზუსტების საჭიროებაა', message: 'ITC-2026-0045 — საჭიროა დამატებითი ინფორმაცია', time: '2 წუთი წინ' },
+  { id: 2, type: 'info', title: 'მოთხოვნა დამტკიცდა', message: 'ITC-2026-0044 — აპარატურის შეკვეთა დამტკიცდა', time: '1 საათი წინ' },
+  { id: 3, type: 'success', title: 'მოთხოვნა შესრულებულია', message: 'ITC-2026-0043 — VPN წვდომა გახსნილია', time: '3 საათი წინ' },
+  { id: 4, type: 'alert', title: 'დეკემბერი დეკემბერი', message: 'ITC-2026-0042 — ვადა შემდეგ კვირაშია', time: 'გუშინ' }
+])
 
 const pageTitle = computed(() => {
   const item = allNavItems.find(n => n.to === route.path)
@@ -198,6 +252,9 @@ const handleLogout = () => {
 const handleClickOutside = (e: MouseEvent) => {
   if (dropdownRef.value && !dropdownRef.value.contains(e.target as Node)) {
     dropdownOpen.value = false
+  }
+  if (notificationsRef.value && !notificationsRef.value.contains(e.target as Node)) {
+    notificationsOpen.value = false
   }
 }
 

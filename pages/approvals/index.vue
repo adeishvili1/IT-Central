@@ -24,7 +24,7 @@
         <p class="text-gray-400 text-sm">ამ სტატუსში მოთხოვნები არ არის</p>
       </div>
 
-      <div v-for="req in filtered" :key="req.id" class="card p-5 hover:shadow-card-md transition-shadow">
+      <div v-for="req in filtered" :key="req.id" class="card-hover p-5">
         <div class="flex items-start gap-4">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-base"
             :class="catBg[req.category]">

@@ -13,7 +13,7 @@
     </div>
 
     <div class="card p-6 space-y-5">
-      <h3 class="text-sm font-semibold text-gray-700 border-b border-gray-100 pb-3">პირადი ინფორმაცია</h3>
+      <h3 class="section-title">პირადი ინფორმაცია</h3>
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="form-label">სახელი</label>
@@ -42,7 +42,7 @@
     </div>
 
     <div class="card p-6 space-y-4">
-      <h3 class="text-sm font-semibold text-gray-700 border-b border-gray-100 pb-3">პაროლის შეცვლა</h3>
+      <h3 class="section-title">პაროლის შეცვლა</h3>
       <div class="space-y-3">
         <div>
           <label class="form-label">მიმდინარე პაროლი</label>

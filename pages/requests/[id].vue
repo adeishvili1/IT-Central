@@ -87,7 +87,7 @@
 
         <!-- Details card -->
         <div class="card p-5">
-          <h3 class="text-sm font-semibold text-gray-700 mb-4">მოთხოვნის დეტალები</h3>
+          <h3 class="section-title">მოთხოვნის დეტალები</h3>
           <dl class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
             <div>
               <dt class="text-gray-400 text-xs mb-1">კატეგორია</dt>
@@ -118,19 +118,19 @@
 
         <!-- Description -->
         <div class="card p-5">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3">დეტალური აღწერა</h3>
+          <h3 class="section-title">დეტალური აღწერა</h3>
           <p class="text-sm text-gray-700 leading-relaxed">{{ req.description }}</p>
         </div>
 
         <!-- Justification -->
         <div class="card p-5">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3">დასაბუთება</h3>
+          <h3 class="section-title">დასაბუთება</h3>
           <p class="text-sm text-gray-700 leading-relaxed">{{ req.justification }}</p>
         </div>
 
         <!-- Comments -->
         <div class="card p-5">
-          <h3 class="text-sm font-semibold text-gray-700 mb-4">კომენტარები ({{ req.comments.length }})</h3>
+          <h3 class="section-title">კომენტარები ({{ req.comments.length }})</h3>
           <div class="space-y-4 mb-5">
             <div v-if="req.comments.length === 0" class="text-sm text-gray-400 py-4 text-center">
               კომენტარები არ არის
@@ -167,7 +167,7 @@
       <div class="space-y-4">
         <!-- Meta -->
         <div class="card p-5">
-          <h3 class="text-sm font-semibold text-gray-700 mb-4">ინფორმაცია</h3>
+          <h3 class="section-title">ინფორმაცია</h3>
           <div class="space-y-3 text-sm">
             <div class="flex justify-between">
               <span class="text-gray-400">მომთხოვნი</span>
@@ -195,7 +195,7 @@
 
         <!-- Status history -->
         <div class="card p-5">
-          <h3 class="text-sm font-semibold text-gray-700 mb-4">სტატუსის ისტორია</h3>
+          <h3 class="section-title">სტატუსის ისტორია</h3>
           <div class="space-y-3">
             <div class="flex gap-3 items-start">
               <div class="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />
@@ -218,7 +218,7 @@
 
         <!-- Assign -->
         <div v-if="!['resolved','closed'].includes(req.status)" class="card p-5">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3">პასუხისმგებელი პირი</h3>
+          <h3 class="section-title">პასუხისმგებელი პირი</h3>
           <select v-model="assignee" class="form-select text-sm mb-2">
             <option value="">— მიანიჭეთ —</option>
             <option v-for="u in itStaff" :key="u">{{ u }}</option>

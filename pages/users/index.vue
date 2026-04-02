@@ -22,8 +22,7 @@
 
     <!-- Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-      <div v-for="user in filteredUsers" :key="user.id"
-        class="card p-5 hover:shadow-card-md transition-shadow">
+      <div v-for="user in filteredUsers" :key="user.id" class="card-hover p-5">
         <div class="flex items-start gap-4">
           <div class="w-12 h-12 rounded-full flex items-center justify-center text-base font-bold text-white flex-shrink-0"
             :style="{ background: avatarColor(user.name) }">

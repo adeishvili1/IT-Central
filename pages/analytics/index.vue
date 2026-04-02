@@ -3,11 +3,11 @@
 
     <!-- KPI cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div v-for="k in kpis" :key="k.label" class="card p-5">
-        <p class="text-xs text-gray-500 mb-2">{{ k.label }}</p>
-        <p class="text-2xl font-bold" :class="k.color">{{ k.value }}</p>
-        <div class="flex items-center gap-1 mt-1">
-          <span class="text-xs" :class="k.trend > 0 ? 'text-green-600' : 'text-red-500'">
+      <div v-for="k in kpis" :key="k.label" class="stat-card">
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ k.label }}</p>
+        <p class="text-2xl font-bold tracking-tight" :class="k.color">{{ k.value }}</p>
+        <div class="flex items-center gap-1">
+          <span class="text-xs font-semibold" :class="k.trend > 0 ? 'text-green-600' : 'text-red-500'">
             {{ k.trend > 0 ? '▲' : '▼' }} {{ Math.abs(k.trend) }}%
           </span>
           <span class="text-xs text-gray-400">გასულ თვესთან</span>
@@ -19,7 +19,7 @@
 
       <!-- Category distribution -->
       <div class="card p-5">
-        <h3 class="text-sm font-semibold text-gray-800 mb-5">კატეგორიების განაწილება</h3>
+        <h3 class="section-title">კატეგორიების განაწილება</h3>
         <div class="space-y-3">
           <div v-for="c in catDist" :key="c.key" class="flex items-center gap-3">
             <div class="w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
@@ -39,7 +39,7 @@
 
       <!-- Monthly trend (simple bars) -->
       <div class="card p-5">
-        <h3 class="text-sm font-semibold text-gray-800 mb-5">ყოველთვიური დინამიკა</h3>
+        <h3 class="section-title">ყოველთვიური დინამიკა</h3>
         <div class="flex items-end gap-2 h-40">
           <div v-for="m in months" :key="m.label" class="flex flex-col items-center gap-1 flex-1">
             <span class="text-xs font-semibold text-gray-600">{{ m.total }}</span>
@@ -57,7 +57,7 @@
 
       <!-- Priority breakdown -->
       <div class="card p-5">
-        <h3 class="text-sm font-semibold text-gray-800 mb-5">პრიორიტეტის მიხედვით</h3>
+        <h3 class="section-title">პრიორიტეტის მიხედვით</h3>
         <div class="grid grid-cols-2 gap-3">
           <div v-for="p in priorityDist" :key="p.key"
             class="rounded-xl p-4 flex flex-col gap-1" :class="p.bg">
@@ -70,7 +70,7 @@
 
       <!-- Top requesters -->
       <div class="card p-5">
-        <h3 class="text-sm font-semibold text-gray-800 mb-5">ყველაზე აქტიური მომთხოვნები</h3>
+        <h3 class="section-title">ყველაზე აქტიური მომთხოვნები</h3>
         <div class="space-y-3">
           <div v-for="(r, i) in topRequesters" :key="r.name" class="flex items-center gap-3">
             <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"

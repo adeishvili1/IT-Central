@@ -1,8 +1,8 @@
 <template>
-  <div class="p-6 max-w-3xl mx-auto space-y-6">
+  <div class="p-4 sm:p-6 w-full max-w-3xl mx-auto space-y-4 sm:space-y-6">
 
     <!-- Tabs -->
-    <div class="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+    <div class="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto w-full sm:w-fit">
       <button v-for="tab in tabs" :key="tab"
         @click="activeTab = tab"
         :class="activeTab === tab ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"

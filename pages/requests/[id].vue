@@ -1,8 +1,8 @@
 <template>
-  <div class="p-6 max-w-4xl mx-auto space-y-6" v-if="req">
+  <div class="p-4 sm:p-6 w-full max-w-6xl mx-auto space-y-6" v-if="req">
 
     <!-- Header -->
-    <div class="flex items-start justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
       <div class="flex items-center gap-3">
         <button @click="$router.back()" class="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -20,7 +20,7 @@
       </div>
 
       <!-- Actions -->
-      <div class="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+      <div class="flex items-center gap-2 flex-shrink-0 flex-wrap justify-start sm:justify-end w-full sm:w-auto">
 
         <!-- new / in_review / needs_clarification — admin/super_admin only -->
         <template v-if="permissions.approveReject && ['new','in_review','needs_clarification'].includes(req.status)">
@@ -80,7 +80,7 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
 
       <!-- Main info -->
       <div class="lg:col-span-2 space-y-5">

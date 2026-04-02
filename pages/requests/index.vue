@@ -1,199 +1,299 @@
 <template>
-  <div class="p-6 space-y-5">
+  <div class="p-4 sm:p-6 space-y-4 sm:space-y-5 h-screen flex flex-col overflow-hidden bg-white dark:bg-[#0a0a0a]">
+    <!-- Header -->
+    <div class="flex-shrink-0 space-y-4">
+      <!-- Title -->
+      <div>
+        <h1 class="text-2xl font-bold text-primary">მოთხოვნების კანბან დაფა</h1>
+        <p class="text-sm text-secondary mt-1">IT მოთხოვნების მართვა და თვალყურის დევნება სხვადსხვა სტატუსებში</p>
+      </div>
 
-    <!-- Toolbar row 1 -->
-    <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-1">
-      <div class="flex-1 relative">
-        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-          <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+      <!-- Toolbar -->
+      <div class="flex flex-col gap-3">
+        <!-- Search + Create (row on mobile, separate on desktop) -->
+        <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          <!-- Search -->
+          <div class="flex-1 relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
+            <input
+              v-model="search"
+              type="text"
+              placeholder="ძიება..."
+              class="form-input pl-10 w-full text-sm"
+            />
+          </div>
+
+          <!-- Create button -->
+          <NuxtLink to="/requests/create" class="btn-primary flex-shrink-0 whitespace-nowrap justify-center">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span class="hidden sm:inline">+ ახალი მოთხოვნა</span>
+            <span class="sm:hidden">ახალი</span>
+          </NuxtLink>
+        </div>
+
+        <!-- Filters (wrap on mobile) -->
+        <div class="flex flex-wrap gap-2 items-center">
+          <select v-model="filterCategory" class="form-select text-sm flex-1 min-w-[120px]">
+            <option value="">კატეგორია</option>
+            <option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option>
+          </select>
+          <select v-model="filterPriority" class="form-select text-sm flex-1 min-w-[120px]">
+            <option value="">პრიორიტეტი</option>
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+            <option>Critical</option>
+          </select>
+          <select v-model="filterRegion" class="form-select text-sm flex-1 min-w-[120px]">
+            <option value="">რეგიონი</option>
+            <option v-for="r in uniqueRegions" :key="r">{{ r }}</option>
+          </select>
+          <select v-model="filterAssignee" class="form-select text-sm flex-1 min-w-[120px]">
+            <option value="">პასუხისმ.</option>
+            <option v-for="a in uniqueAssignees" :key="a">{{ a }}</option>
+          </select>
+
+          <!-- Clear filters button -->
+          <button
+            v-if="hasActiveFilters"
+            @click="clearFilters"
+            class="text-xs text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors flex items-center gap-1 px-2 py-2 flex-shrink-0"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            <span class="hidden sm:inline">გასუფთავება</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="flex items-center gap-4 text-xs text-muted flex-wrap">
+        <span>
+          <span class="text-xs font-medium">სულ:</span>
+          <span class="font-semibold text-primary ml-1">{{ filtered.length }}</span>
         </span>
-        <input v-model="search" type="text" placeholder="ძიება სათაურით, ნომრით, მომთხოვნით..."
-          class="form-input pl-10 w-full" />
-      </div>
-      <NuxtLink to="/requests/create" class="btn-primary flex-shrink-0">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-        </svg>
-        ახალი მოთხოვნა
-      </NuxtLink>
-    </div>
-
-    <!-- Toolbar row 2: filters -->
-    <div class="flex flex-wrap gap-2 items-center">
-      <select v-model="filterStatus" class="form-select text-sm w-40">
-        <option value="">ყველა სტატუსი</option>
-        <option v-for="(label, key) in statusLabel" :key="key" :value="key">{{ label }}</option>
-      </select>
-      <select v-model="filterCategory" class="form-select text-sm w-36">
-        <option value="">ყველა კატეგ.</option>
-        <option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option>
-      </select>
-      <select v-model="filterPriority" class="form-select text-sm w-36">
-        <option value="">ყველა პრიორ.</option>
-        <option v-for="(label, key) in priorityLabel" :key="key" :value="key">{{ label }}</option>
-      </select>
-      <select v-model="filterRegion" class="form-select text-sm w-36">
-        <option value="">ყველა რეგიონი</option>
-        <option v-for="r in uniqueRegions" :key="r">{{ r }}</option>
-      </select>
-      <select v-model="filterAssignee" class="form-select text-sm w-40">
-        <option value="">ყველა პასუხისმ.</option>
-        <option v-for="a in uniqueAssignees" :key="a">{{ a }}</option>
-      </select>
-      <select v-model="filterAuthor" class="form-select text-sm w-40">
-        <option value="">ყველა ავტორი</option>
-        <option v-for="a in uniqueAuthors" :key="a">{{ a }}</option>
-      </select>
-      <div class="flex items-center gap-1.5">
-        <input v-model="dateFrom" type="date" class="form-input text-sm w-36" title="თარიღიდან" />
-        <span class="text-gray-400 text-xs">—</span>
-        <input v-model="dateTo" type="date" class="form-input text-sm w-36" title="თარიღამდე" />
-      </div>
-      <button v-if="hasActiveFilters" @click="clearFilters"
-        class="text-xs text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1 px-2 py-2">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-        ფილტრის გასუფთავება
-      </button>
-    </div>
-
-    <!-- Count -->
-    <p class="text-xs text-gray-500">
-      ნაჩვენებია <span class="font-semibold text-gray-700">{{ filtered.length }}</span> მოთხოვნა
-    </p>
-
-    <!-- Table -->
-    <div class="card overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr>
-              <th class="table-header-cell rounded-tl-xl">№ / სათაური</th>
-              <th class="table-header-cell">კატეგ.</th>
-              <th class="table-header-cell">სტატუსი</th>
-              <th class="table-header-cell">პრიორ.</th>
-              <th class="table-header-cell">მომთხოვნი</th>
-              <th class="table-header-cell">რეგიონი</th>
-              <th class="table-header-cell">თარიღი</th>
-              <th class="table-header-cell rounded-tr-xl w-8" />
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="filtered.length === 0">
-              <td colspan="8" class="text-center py-20 text-gray-400 text-sm">
-                <div class="flex flex-col items-center gap-3">
-                  <svg class="w-12 h-12 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span>მოთხოვნები ვერ მოიძებნა</span>
-                </div>
-              </td>
-            </tr>
-            <tr
-              v-for="req in filtered"
-              :key="req.id"
-              class="table-row group"
-              @click="navigateTo(`/requests/${req.id}`)"
-            >
-              <td class="table-cell">
-                <p class="font-medium text-gray-900 leading-tight group-hover:text-primary-700 transition-colors">{{ req.title }}</p>
-                <p class="text-xs text-gray-400 mt-0.5 font-mono">{{ req.number }}</p>
-              </td>
-              <td class="table-cell">
-                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600">
-                  <span>{{ categoryEmoji[req.category] }}</span>
-                  {{ categoryLabel[req.category] }}
-                </span>
-              </td>
-              <td class="table-cell">
-                <span class="badge" :class="statusColor[req.status]">{{ statusLabel[req.status] }}</span>
-              </td>
-              <td class="table-cell">
-                <span class="badge" :class="priorityColor[req.priority]">{{ priorityLabel[req.priority] }}</span>
-              </td>
-              <td class="table-cell text-gray-600 whitespace-nowrap">{{ req.requester }}</td>
-              <td class="table-cell text-gray-600 whitespace-nowrap">{{ req.region }}</td>
-              <td class="table-cell text-gray-400 whitespace-nowrap text-xs">{{ formatDate(req.createdAt) }}</td>
-              <td class="table-cell">
-                <svg class="w-4 h-4 text-gray-300 group-hover:text-primary-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <span v-if="visibleColumns.length > 0">•</span>
+        <span v-for="(col, idx) in visibleColumns" :key="col.key" class="flex items-center gap-1">
+          <span
+            class="inline-block w-2 h-2 rounded-full"
+            :class="getStatusDotColor(col.key)"
+          />
+          {{ col.label }}: {{ getColumnCount(col.key) }}
+        </span>
       </div>
     </div>
+
+    <!-- Kanban Board (responsive layout) -->
+    <!-- Mobile: Vertical stacked layout -->
+    <div class="flex-1 min-h-0 overflow-y-auto lg:hidden">
+      <div class="space-y-6 px-4 py-4 pb-4">
+        <div v-for="column in visibleColumns" :key="column.key" class="space-y-3">
+          <!-- Column Header -->
+          <div class="flex items-center gap-3">
+            <div
+              class="w-2.5 h-2.5 rounded-full flex-shrink-0"
+              :class="getStatusDotColor(column.key)"
+            />
+            <h3 class="text-sm font-semibold text-primary">{{ column.label }}</h3>
+            <span class="inline-flex items-center justify-center min-w-5 h-5 rounded-full text-xs font-bold"
+              :class="column.badgeClass">
+              {{ getColumnCount(column.key) }}
+            </span>
+          </div>
+
+          <!-- Cards Grid (single column on mobile) -->
+          <div class="space-y-3">
+            <KanbanCard
+              v-for="item in getColumnItems(column.key)"
+              :key="item.id"
+              :request="item"
+              @click="openModal(item)"
+            />
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div v-if="visibleColumns.length === 0" class="flex flex-col items-center justify-center py-12">
+          <svg class="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <p class="text-gray-400 text-sm">მოთხოვნები ნაპოვნი არ იქნა</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop: Horizontal grid layout -->
+    <div class="hidden lg:flex flex-col flex-1 min-h-0 overflow-y-auto">
+      <div class="px-4 py-4 pb-4">
+        <div class="grid gap-4" :style="{ gridTemplateColumns: `repeat(${visibleColumns.length}, minmax(280px, 1fr))` }">
+          <div v-for="column in visibleColumns" :key="column.key" class="flex flex-col gap-3 min-h-0">
+            <!-- Column Header -->
+            <div class="flex items-center gap-3 flex-shrink-0">
+              <div
+                class="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                :class="getStatusDotColor(column.key)"
+              />
+              <h3 class="text-sm font-semibold text-primary">{{ column.label }}</h3>
+              <span class="inline-flex items-center justify-center min-w-5 h-5 rounded-full text-xs font-bold"
+                :class="column.badgeClass">
+                {{ getColumnCount(column.key) }}
+              </span>
+            </div>
+
+            <!-- Cards (scrollable column) -->
+            <div class="space-y-3 flex-1 overflow-y-auto min-h-96">
+              <KanbanCard
+                v-for="item in getColumnItems(column.key)"
+                :key="item.id"
+                :request="item"
+                @click="openModal(item)"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div v-if="visibleColumns.length === 0" class="flex flex-col items-center justify-center py-12">
+          <svg class="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <p class="text-gray-400 text-sm">მოთხოვნები ნაპოვნი არ იქნა</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details Modal -->
+    <RequestDetailsModal
+      :is-open="modalOpen"
+      :request="selectedRequest"
+      @close="closeModal"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from 'vue'
+
 definePageMeta({ layout: 'default', middleware: 'auth' })
 
-const { requests, statusLabel, statusColor, priorityLabel, priorityColor, categoryLabel } = useRequests()
+const { requests, statusLabel, categoryLabel, priorityLabel } = useRequests()
 const { currentUser, permissions } = useAuth()
 
-// support role sees only their own requests
+// Modal state
+const modalOpen = ref(false)
+const selectedRequest = ref<any>(null)
+
+// Filter state
+const search = ref('')
+const filterCategory = ref('')
+const filterPriority = ref('')
+const filterRegion = ref('')
+const filterAssignee = ref('')
+
+// Base requests (respect permissions)
 const baseRequests = computed(() =>
   permissions.value.seeAllRequests
     ? requests.value
     : requests.value.filter(r => r.requester === `${currentUser.value.name} ${currentUser.value.surname}`)
 )
 
-const search = ref('')
-const filterStatus = ref('')
-const filterCategory = ref('')
-const filterPriority = ref('')
-const filterRegion = ref('')
-const filterAssignee = ref('')
-const filterAuthor = ref('')
-const dateFrom = ref('')
-const dateTo = ref('')
-
-const categoryEmoji: Record<string, string> = {
-  hardware: '🖥️', software: '💿', access: '🔐', support: '🔧', other: '📋'
-}
-
-const formatDate = (d: string) =>
-  new Date(d).toLocaleDateString('ka-GE', { day: '2-digit', month: 'short', year: 'numeric' })
-
-const uniqueRegions = computed(() => [...new Set(requests.value.map(r => r.region))].sort())
-const uniqueAssignees = computed(() => [...new Set(requests.value.map(r => r.assignee).filter(Boolean))] as string[])
-const uniqueAuthors = computed(() => [...new Set(requests.value.map(r => r.requester))].sort())
-
-const hasActiveFilters = computed(() =>
-  !!(search.value || filterStatus.value || filterCategory.value || filterPriority.value ||
-     filterRegion.value || filterAssignee.value || filterAuthor.value || dateFrom.value || dateTo.value)
-)
-
-const clearFilters = () => {
-  search.value = ''
-  filterStatus.value = ''
-  filterCategory.value = ''
-  filterPriority.value = ''
-  filterRegion.value = ''
-  filterAssignee.value = ''
-  filterAuthor.value = ''
-  dateFrom.value = ''
-  dateTo.value = ''
-}
-
+// Filtered requests
 const filtered = computed(() => {
   return baseRequests.value.filter(r => {
     const q = search.value.toLowerCase()
     if (q && !r.title.toLowerCase().includes(q) && !r.number.toLowerCase().includes(q) && !r.requester.toLowerCase().includes(q)) return false
-    if (filterStatus.value && r.status !== filterStatus.value) return false
     if (filterCategory.value && r.category !== filterCategory.value) return false
     if (filterPriority.value && r.priority !== filterPriority.value) return false
     if (filterRegion.value && r.region !== filterRegion.value) return false
     if (filterAssignee.value && r.assignee !== filterAssignee.value) return false
-    if (filterAuthor.value && r.requester !== filterAuthor.value) return false
-    if (dateFrom.value && r.createdAt < dateFrom.value) return false
-    if (dateTo.value && r.createdAt > dateTo.value + 'T23:59:59') return false
     return true
   })
 })
+
+// Active filters check
+const hasActiveFilters = computed(() =>
+  !!(search.value || filterCategory.value || filterPriority.value || filterRegion.value || filterAssignee.value)
+)
+
+// Clear filters
+const clearFilters = () => {
+  search.value = ''
+  filterCategory.value = ''
+  filterPriority.value = ''
+  filterRegion.value = ''
+  filterAssignee.value = ''
+}
+
+// Unique values for dropdowns
+const uniqueRegions = computed(() => [...new Set(requests.value.map(r => r.region))].sort())
+const uniqueAssignees = computed(() => [...new Set(requests.value.map(r => r.assignee).filter(Boolean))] as string[])
+
+// Kanban columns
+const kanbanColumns = [
+  { key: 'new', label: 'ახალი', badgeClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+  { key: 'in_review', label: 'განხილვაში', badgeClass: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+  { key: 'needs_clarification', label: 'დაზუსტება სჭირს', badgeClass: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
+  { key: 'approved', label: 'დამტკიცებული', badgeClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+  { key: 'delegated', label: 'დელეგირებული', badgeClass: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
+  { key: 'in_progress', label: 'მიმდინარე', badgeClass: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400' },
+  { key: 'resolved', label: 'შესრულებული', badgeClass: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' },
+  { key: 'closed', label: 'დახურული', badgeClass: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' }
+]
+
+// Get items for a column
+const getColumnItems = (status: string) => {
+  return filtered.value
+    .filter(r => r.status === status)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}
+
+// Get count for a column
+const getColumnCount = (status: string) => {
+  return getColumnItems(status).length
+}
+
+// Get status dot color
+const getStatusDotColor = (status: string) => {
+  const colors: Record<string, string> = {
+    new: 'bg-blue-500',
+    in_review: 'bg-amber-500',
+    needs_clarification: 'bg-orange-500',
+    approved: 'bg-emerald-500',
+    delegated: 'bg-purple-500',
+    in_progress: 'bg-cyan-500',
+    resolved: 'bg-teal-500',
+    closed: 'bg-slate-500'
+  }
+  return colors[status] || 'bg-slate-300'
+}
+
+// Only show columns that have items
+const visibleColumns = computed(() => {
+  return kanbanColumns.filter(col => getColumnCount(col.key) > 0)
+})
+
+// Modal handlers
+const openModal = (request: any) => {
+  selectedRequest.value = request
+  modalOpen.value = true
+}
+
+const closeModal = () => {
+  modalOpen.value = false
+  selectedRequest.value = null
+}
 </script>
+
+<style scoped>
+/* Smooth scrolling */
+:deep(.overflow-x-auto) {
+  scroll-behavior: smooth;
+}
+</style>

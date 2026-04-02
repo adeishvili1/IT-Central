@@ -3,3 +3,12 @@
     <NuxtPage />
   </NuxtLayout>
 </template>
+
+<script setup lang="ts">
+// Initialize theme on app load
+const { initTheme } = useTheme()
+
+onMounted(() => {
+  initTheme()
+})
+</script>

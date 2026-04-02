@@ -1,8 +1,8 @@
 <template>
-  <div class="p-6 space-y-6">
+  <div class="p-4 sm:p-6 space-y-4 sm:space-y-6">
 
     <!-- Filters -->
-    <div class="card p-4 flex flex-wrap gap-3 items-center">
+    <div class="card p-3 sm:p-4 flex flex-wrap gap-2 sm:gap-3 items-end justify-between md:items-center">
       <div>
         <label class="form-label text-xs">პერიოდი</label>
         <select v-model="period" class="form-select text-sm">

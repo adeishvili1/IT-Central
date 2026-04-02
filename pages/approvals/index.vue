@@ -1,8 +1,8 @@
 <template>
-  <div class="p-6 space-y-5">
+  <div class="p-4 sm:p-6 space-y-4 sm:space-y-5">
 
     <!-- Tabs -->
-    <div class="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+    <div class="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto w-full sm:w-fit">
       <button v-for="tab in tabs" :key="tab.key"
         @click="activeTab = tab.key"
         :class="activeTab === tab.key
@@ -24,41 +24,48 @@
         <p class="text-gray-400 text-sm">ამ სტატუსში მოთხოვნები არ არის</p>
       </div>
 
-      <div v-for="req in filtered" :key="req.id" class="card-hover p-5">
-        <div class="flex items-start gap-4">
+      <div v-for="req in filtered" :key="req.id" class="card-hover p-3 sm:p-5">
+        <!-- Header: Icon + Content -->
+        <div class="flex items-start gap-3">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-base"
             :class="catBg[req.category]">
             {{ catEmoji[req.category] }}
           </div>
 
           <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 mb-1">
+            <!-- Title + Badges -->
+            <div class="flex items-center gap-2 gap-y-1 mb-1 flex-wrap">
               <span class="text-xs font-mono text-gray-400">{{ req.number }}</span>
               <span class="badge text-[11px]" :class="statusColor[req.status]">{{ statusLabel[req.status] }}</span>
               <span class="badge text-[11px]" :class="priorityColor[req.priority]">{{ priorityLabel[req.priority] }}</span>
             </div>
-            <h3 class="text-sm font-semibold text-gray-900 mb-1">{{ req.title }}</h3>
-            <p class="text-xs text-gray-500 line-clamp-1">{{ req.description }}</p>
-            <div class="flex items-center gap-4 mt-2 text-xs text-gray-400">
-              <span>👤 {{ req.requester }}</span>
-              <span>🏢 {{ req.region }}</span>
-              <span>📅 {{ formatDate(req.createdAt) }}</span>
-              <span v-if="req.deadline" class="text-orange-500">⏰ {{ formatDate(req.deadline) }}</span>
-            </div>
-          </div>
+            <h3 class="text-sm font-semibold text-gray-900 mb-2">{{ req.title }}</h3>
 
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <NuxtLink :to="`/requests/${req.id}`" class="btn-secondary text-xs px-3 py-2">
-              ნახვა
-            </NuxtLink>
-            <template v-if="activeTab === 'pending'">
-              <button @click="approve(req.id)" class="btn-primary text-xs px-3 py-2">
-                დამტკიცება
-              </button>
-              <button @click="reject(req.id)" class="btn-danger text-xs px-3 py-2">
-                უარყოფა
-              </button>
-            </template>
+            <!-- Description -->
+            <p class="text-xs text-gray-500 line-clamp-2 mb-2">{{ req.description }}</p>
+
+            <!-- Metadata -->
+            <div class="grid grid-cols-2 sm:flex sm:items-center sm:flex-wrap sm:gap-3 gap-2 mb-3 text-xs text-gray-400">
+              <span class="truncate">👤 {{ req.requester }}</span>
+              <span class="truncate">🏢 {{ req.region }}</span>
+              <span class="truncate">📅 {{ formatDate(req.createdAt) }}</span>
+              <span v-if="req.deadline" class="text-orange-500 truncate">⏰ {{ formatDate(req.deadline) }}</span>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-wrap gap-2">
+              <NuxtLink :to="`/requests/${req.id}`" class="btn-secondary text-xs px-3 py-2">
+                ნახვა
+              </NuxtLink>
+              <template v-if="activeTab === 'pending'">
+                <button @click="approve(req.id)" class="btn-primary text-xs px-3 py-2">
+                  დამტკიცება
+                </button>
+                <button @click="reject(req.id)" class="btn-danger text-xs px-3 py-2">
+                  უარყოფა
+                </button>
+              </template>
+            </div>
           </div>
         </div>
       </div>

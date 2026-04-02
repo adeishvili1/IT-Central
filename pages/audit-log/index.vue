@@ -1,8 +1,8 @@
 <template>
-  <div class="p-6 space-y-5">
+  <div class="p-4 sm:p-6 space-y-4 sm:space-y-5">
 
     <!-- Filters -->
-    <div class="flex flex-wrap gap-3 items-center">
+    <div class="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 items-stretch sm:items-center">
       <div class="relative flex-1 min-w-48">
         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
           <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

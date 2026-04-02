@@ -1,7 +1,7 @@
 <template>
-  <div class="p-6 max-w-2xl mx-auto space-y-6">
+  <div class="p-4 sm:p-6 w-full max-w-2xl mx-auto space-y-4 sm:space-y-6">
 
-    <div class="card p-6 flex items-center gap-5">
+    <div class="card p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
       <div class="w-16 h-16 rounded-full bg-primary-700 flex items-center justify-center text-2xl font-bold text-white flex-shrink-0">
         {{ initials }}
       </div>

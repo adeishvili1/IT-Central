@@ -16,6 +16,7 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.1.5",
+    "@lucide/vue": "^1.7.0",
     "chart.js": "^4.4.4",
     "vue-chartjs": "^5.3.1"
   }

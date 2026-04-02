@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 space-y-6">
+  <div class="p-4 sm:p-6 space-y-4 sm:space-y-6">
 
     <!-- KPI cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -18,20 +18,24 @@
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
       <!-- Category distribution -->
-      <div class="card p-5">
-        <h3 class="section-title">კატეგორიების განაწილება</h3>
+      <div class="card p-4 sm:p-5">
+        <h3 class="section-title mb-4">კატეგორიების განაწილება</h3>
         <div class="space-y-3">
-          <div v-for="c in catDist" :key="c.key" class="flex items-center gap-3">
-            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
-              :class="c.bg">{{ c.emoji }}</div>
-            <span class="text-sm text-gray-600 flex-1">{{ c.label }}</span>
-            <div class="flex items-center gap-3">
-              <div class="w-32 h-2 rounded-full bg-gray-100 overflow-hidden">
+          <div v-for="c in catDist" :key="c.key" class="flex flex-col gap-2">
+            <div class="flex items-center gap-2 justify-between">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <div class="w-6 h-6 rounded-lg flex items-center justify-center text-xs flex-shrink-0"
+                  :class="c.bg">{{ c.emoji }}</div>
+                <span class="text-xs sm:text-sm text-gray-600 truncate">{{ c.label }}</span>
+              </div>
+              <span class="text-xs font-semibold text-gray-700 flex-shrink-0">{{ c.count }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden">
                 <div class="h-full rounded-full transition-all" :class="c.barColor"
                   :style="{ width: c.pct + '%' }" />
               </div>
-              <span class="text-xs font-semibold text-gray-700 w-8 text-right">{{ c.count }}</span>
-              <span class="text-xs text-gray-400 w-8 text-right">{{ c.pct }}%</span>
+              <span class="text-xs text-gray-400 flex-shrink-0 w-10 text-right">{{ c.pct }}%</span>
             </div>
           </div>
         </div>
@@ -69,21 +73,23 @@
       </div>
 
       <!-- Top requesters -->
-      <div class="card p-5">
-        <h3 class="section-title">ყველაზე აქტიური მომთხოვნები</h3>
+      <div class="card p-4 sm:p-5">
+        <h3 class="section-title mb-4">ყველაზე აქტიური მომთხოვნები</h3>
         <div class="space-y-3">
-          <div v-for="(r, i) in topRequesters" :key="r.name" class="flex items-center gap-3">
-            <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-              :class="i === 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'">
-              {{ i + 1 }}
-            </span>
-            <span class="text-sm text-gray-700 flex-1">{{ r.name }}</span>
-            <div class="flex items-center gap-2">
-              <div class="w-20 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                <div class="h-full rounded-full bg-primary-500"
-                  :style="{ width: (r.count / topRequesters[0].count * 100) + '%' }" />
+          <div v-for="(r, i) in topRequesters" :key="r.name" class="flex flex-col gap-2">
+            <div class="flex items-center gap-2 justify-between">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                  :class="i === 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'">
+                  {{ i + 1 }}
+                </span>
+                <span class="text-xs sm:text-sm text-gray-700 truncate">{{ r.name }}</span>
               </div>
-              <span class="text-xs font-semibold text-gray-700">{{ r.count }}</span>
+              <span class="text-xs font-semibold text-gray-700 flex-shrink-0">{{ r.count }}</span>
+            </div>
+            <div class="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+              <div class="h-full rounded-full bg-primary-500 transition-all"
+                :style="{ width: (r.count / topRequesters[0].count * 100) + '%' }" />
             </div>
           </div>
         </div>

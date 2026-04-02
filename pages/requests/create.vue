@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 w-full max-w-5xl mx-auto space-y-5">
+  <div class="p-4 sm:p-6 w-full max-w-5xl mx-auto space-y-5">
 
     <!-- Header -->
     <div class="flex items-center gap-3 mb-2">
@@ -25,7 +25,7 @@
         </div>
 
         <!-- Category cards -->
-        <div class="grid grid-cols-5 gap-3 mb-4">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-4">
           <button
             v-for="cat in categories"
             :key="cat.value"

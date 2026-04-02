@@ -2,7 +2,7 @@
   <div class="h-screen flex overflow-hidden">
 
     <!-- Left: Form panel -->
-    <div class="w-full lg:w-[45%] flex flex-col items-center justify-center px-10 py-12 bg-white overflow-y-auto">
+    <div class="w-full lg:w-[45%] flex flex-col items-center justify-center px-4 sm:px-8 md:px-10 py-8 sm:py-12 bg-white overflow-y-auto">
       <slot />
     </div>
 

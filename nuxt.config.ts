@@ -14,6 +14,20 @@ export default defineNuxtConfig({
           rel: 'stylesheet',
           href: 'https://fonts.googleapis.com/css2?family=FiraGO:wght@300;400;500;600;700&display=swap'
         }
+      ],
+      script: [
+        {
+          innerHTML: `
+            (function() {
+              const saved = localStorage.getItem('theme');
+              const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              if (saved === 'dark' || (!saved && prefersDark)) {
+                document.documentElement.classList.add('dark');
+              }
+            })();
+          `,
+          async: false
+        }
       ]
     }
   }
